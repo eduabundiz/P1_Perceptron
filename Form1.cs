@@ -16,11 +16,14 @@ namespace P1_Perceptron
 
         int cont = 0;
         List<Point> points = new List<Point>();
+        List<PlanePoint> planePoints = new List<PlanePoint>();
         Bitmap bmp;
+        
         public Form1()
         {
             InitializeComponent();
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+            createDashbord();
         }
 
         private void panel1_MouseClick(object sender, MouseEventArgs e)
@@ -36,6 +39,8 @@ namespace P1_Perceptron
             Brush b1 = new SolidBrush(Color.Red);
             Brush b2 = new SolidBrush(Color.Blue);
 
+            Point clicked = new Point(e.X, e.Y);
+                        
             if (e.Button == MouseButtons.Right)
             {
                 g.FillEllipse(b1, e.X - 2, e.Y - 2, 10, 10);
@@ -44,6 +49,35 @@ namespace P1_Perceptron
             {
                 g.FillEllipse(b2, e.X - 2, e.Y - 2, 10, 10);
             }
+
+            //Instanciar el punto del plano con los valores dados
+            PlanePoint planePoint = new PlanePoint( PointController.pixelsToPlane(clicked,bmp));            
+
+            pictureBox1.Image = bmp;
+            pictureBox1.Refresh();
+            planePoints.Add(planePoint);
+            MessageBox.Show("(" + planePoint.X + "," + planePoint.Y + ")");
+        }
+
+        private void createDashbord()
+        {
+            Graphics g = Graphics.FromImage(bmp);
+            Brush b1 = new SolidBrush(Color.Black);
+            Pen p1 = new Pen(b1);
+
+            g.DrawLine(p1, bmp.Width / 2, 0, bmp.Width / 2, bmp.Height);
+            g.DrawLine(p1, 0, bmp.Height / 2,  bmp.Width, bmp.Height / 2);
+
+            int segmWidth = bmp.Width / 10;
+            int segmHeight = bmp.Height / 10;
+
+            for(int i = 0; i < 10; i++)
+            {
+                if (i == 5) continue;
+                g.DrawLine(p1, segmWidth * i, bmp.Height / 2 - 3, segmWidth * i, bmp.Height / 2 + 3);
+                g.DrawLine(p1, bmp.Width / 2 - 3, segmHeight * i, bmp.Width / 2 + 3, segmHeight * i);
+            }
+
 
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
