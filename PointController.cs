@@ -47,12 +47,12 @@ namespace P1_Perceptron
         #endregion
 
         #region planeToPixels
-        public static Point planeToPixels(float x, float y, Bitmap bmp)
+        public static Point planeToPixels(double x, double y, Bitmap bmp)
         {
             Point point = new Point();
 
-            float ex = x;
-            float ey = y;
+            double ex = x;
+            double ey = y;
 
             ex = ex / DIVISIONES * (bmp.Width / 2);
             ex = ex + (bmp.Width / 2);

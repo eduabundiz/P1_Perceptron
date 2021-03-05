@@ -17,6 +17,12 @@ namespace P1_Perceptron
         int cont = 0;
         List<Point> points = new List<Point>();
         List<PlanePoint> planePoints = new List<PlanePoint>();
+        List<double> w = new List<double>();
+        List<double> x1 = new List<double>();
+        List<double> x2 = new List<double>();
+        double a;
+        double b;
+        int epocMax;
         Bitmap bmp;
         
         public Form1()
@@ -24,12 +30,42 @@ namespace P1_Perceptron
             InitializeComponent();
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             createDashbord();
+            a = 0.1;
+            epocMax = 50;
+            b = -0.5;
+            x1.Add(-5);
+            x1.Add(5);
+            button2.Enabled = false;
         }
 
-        private void panel1_MouseClick(object sender, MouseEventArgs e)
+        //Inicializar el vector de pesos y mostrar la primera linea recta
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (textBox1.Text != "")
+            {
+                a = Convert.ToDouble(textBox1.Text);
+            }
+            if (textBox2.Text != "")
+            {
+                epocMax = Convert.ToInt32(textBox2.Text);
+            }
+            w.Add(0.1);
+            w.Add(0.2);
+
+            x2.Add((-b - w[0] * x1[0]) / w[1]);
+            x2.Add((-b - w[0] * x1[1]) / w[1]);
+
+            //Dibujar primera linea con las coordenadas [x1[0],x2[0]],[x1[1],x2[1]]
+            dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
+
+            button1.Enabled = false;
+            button2.Enabled = true;
+        }
+
+        //Entrenar el perceptron
+        private void button2_Click(object sender, EventArgs e)
         {
             
-
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
@@ -57,10 +93,6 @@ namespace P1_Perceptron
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             planePoints.Add(planePoint);
-            
-            example = PointController.planeToPixels(planePoint.X,planePoint.Y, bmp);
-
-            MessageBox.Show("(" + planePoint.X + "," + planePoint.Y + ")");
 
         }
 
@@ -87,5 +119,25 @@ namespace P1_Perceptron
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
         }
+
+        private void dibujarLinea(double x1, double y1, double x2, double y2)
+        {
+            // Create pen.
+            Bitmap bmp2 = new Bitmap(bmp);
+            Pen blackPen = new Pen(Color.Green, 2);
+            Graphics g = Graphics.FromImage(bmp2);
+
+            Point point1 = PointController.planeToPixels(x1, y1, bmp2);
+            Point point2 = PointController.planeToPixels(x2, y2, bmp2);
+
+            // Draw line to screen.
+            g.DrawLine(blackPen, point1, point2);
+
+            pictureBox1.Image = bmp2;
+            pictureBox1.Refresh();
+
+        }
+
+        
     }
 }
