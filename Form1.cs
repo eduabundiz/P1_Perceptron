@@ -40,6 +40,7 @@ namespace P1_Perceptron
             Brush b2 = new SolidBrush(Color.Blue);
 
             Point clicked = new Point(e.X, e.Y);
+            Point example = new Point();
                         
             if (e.Button == MouseButtons.Right)
             {
@@ -56,7 +57,11 @@ namespace P1_Perceptron
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             planePoints.Add(planePoint);
+            
+            example = PointController.planeToPixels(planePoint.X,planePoint.Y, bmp);
+
             MessageBox.Show("(" + planePoint.X + "," + planePoint.Y + ")");
+
         }
 
         private void createDashbord()
