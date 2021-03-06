@@ -96,13 +96,15 @@ namespace P1_Perceptron
                 }
                 cont++;
             }
-            if(done){
+            matrizConfusion();
+            if (done){
                 MessageBox.Show("Terminó en la epoca: " + cont.ToString());
                 bmp = bmp2;
             }
             else if(cont>=epocMax){
                 MessageBox.Show("Llego a las epocas Máximas: " + cont.ToString() + " Sin resultados");
             }
+            
         }
 
         private void evaluarPunto(Point p)
@@ -120,6 +122,48 @@ namespace P1_Perceptron
             
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
+        }
+
+        private void matrizConfusion()
+        {
+            double calculo = 0;
+            int tp = 0, tn = 0, fp = 0, fn = 0;            
+
+            for (int i = 0; i< Y.Count; i++)
+            {
+                
+                calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
+                if (calculo > 0)
+                {
+                    if (Y[i] == 1)                    
+                        tp++;                    
+                    else
+                        fn++;                    
+                } else {
+                    if (Y[i] == 1)                    
+                        fp++;                   
+                    else                    
+                        tn++;                    
+                }
+            }
+            #region labels
+            labelN.Text  = "N = " + Y.Count.ToString();
+            labelTN.Text = "TN = " + tn.ToString();
+            labelFP.Text = "FP = " + fp.ToString();
+            labelFN.Text = "FN = " + fn.ToString();
+            labelTP.Text = "TP = " + tp.ToString();
+
+            labelTotalPredNo.Text = (tn + fn).ToString();
+            labelTotalPredSi.Text = (tp + fp).ToString();
+
+            int totalActNo = tn + fp;
+            int totalActSi = fn + tp;
+
+            labelTotalActNo.Text = (totalActNo).ToString();
+            labelTotalActSI.Text = (totalActSi).ToString();
+            labelTotalTotal.Text = (totalActNo + totalActSi).ToString();
+
+            #endregion            
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
