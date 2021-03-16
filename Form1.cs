@@ -89,7 +89,7 @@ namespace P1_Perceptron
                     x2[1] = (-w[1] * x1[1] + w[0]) / w[2];
                     dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
                     calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
-                    if (calculo > 0)
+                    if (calculo >= 0)
                         prediccion = 1;
                     else
                         prediccion = 0;
@@ -143,17 +143,17 @@ namespace P1_Perceptron
             {
 
                 calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
-                if (calculo > 0)
+                if (calculo >= 0)
                 {
                     if (Y[i] == 1)
                         tp++;
                     else
-                        fn++;
+                        fp++;
                 }
                 else
                 {
                     if (Y[i] == 1)
-                        fp++;
+                        fn++;
                     else
                         tn++;
                 }
