@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace P1_Perceptron
 {
@@ -27,6 +28,10 @@ namespace P1_Perceptron
         Bitmap bmp;
         Bitmap bmp2;
 
+        int bicolor;
+        Pen blackPen;
+        Pen blackPen2;
+
         public Form1()
         {
             InitializeComponent();
@@ -38,6 +43,9 @@ namespace P1_Perceptron
             x1.Add(5);
             button2.Enabled = false;
             done = false;
+            bicolor = 0;
+            blackPen = new Pen(Color.Green, 2);
+            blackPen2 = new Pen(Color.Orange, 2);
         }
 
         //Inicializar el vector de pesos y mostrar la primera linea recta
@@ -55,8 +63,8 @@ namespace P1_Perceptron
             w.Add(0.1);
             w.Add(0.2);
 
-            x2.Add((- w[1] * x1[0] + w[0]) / w[2]);
-            x2.Add((- w[1] * x1[1] + w[0]) / w[2]);
+            x2.Add((-w[1] * x1[0] + w[0]) / w[2]);
+            x2.Add((-w[1] * x1[1] + w[0]) / w[2]);
 
             //Dibujar primera linea con las coordenadas [x1[0],x2[0]],[x1[1],x2[1]]
             dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
@@ -72,13 +80,13 @@ namespace P1_Perceptron
             int prediccion;
             int cont = 0;
             int error;
-            while(!done && cont < epocMax )
+            while (!done && cont < epocMax)
             {
                 done = true;
-                for(int i=0; i < planePoints.Count(); i++)
+                for (int i = 0; i < planePoints.Count(); i++)
                 {
-                    x2[0]=(-w[1] * x1[0] + w[0]) / w[2];
-                    x2[1]=(-w[1] * x1[1] + w[0]) / w[2];
+                    x2[0] = (-w[1] * x1[0] + w[0]) / w[2];
+                    x2[1] = (-w[1] * x1[1] + w[0]) / w[2];
                     dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
                     calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
                     if (calculo > 0)
@@ -86,7 +94,7 @@ namespace P1_Perceptron
                     else
                         prediccion = 0;
                     error = Y[i] - prediccion;
-                    if (error!=0)
+                    if (error != 0)
                     {
                         w[0] = w[0] + (a * error * -1);
                         w[1] = w[1] + (a * error * planePoints[i].X);
@@ -97,14 +105,16 @@ namespace P1_Perceptron
                 cont++;
             }
             matrizConfusion();
-            if (done){
+            if (done)
+            {
                 MessageBox.Show("Terminó en la epoca: " + cont.ToString());
                 bmp = bmp2;
             }
-            else if(cont>=epocMax){
+            else if (cont >= epocMax)
+            {
                 MessageBox.Show("Llego a las epocas Máximas: " + cont.ToString() + " Sin resultados");
             }
-            
+
         }
 
         private void evaluarPunto(Point p)
@@ -114,12 +124,12 @@ namespace P1_Perceptron
             Brush b2 = new SolidBrush(Color.Blue);
             double calculo = 0;
             PlanePoint planePoint = new PlanePoint(PointController.pixelsToPlane(p, bmp));
-            calculo = (w[0] * - 1 + w[1] * planePoint.X + w[2] * planePoint.Y);
+            calculo = (w[0] * -1 + w[1] * planePoint.X + w[2] * planePoint.Y);
             if (calculo > 0)
                 g.FillEllipse(b1, p.X - 6, p.Y - 6, 10, 10);
             else
                 g.FillEllipse(b2, p.X - 6, p.Y - 6, 10, 10);
-            
+
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
         }
@@ -127,27 +137,29 @@ namespace P1_Perceptron
         private void matrizConfusion()
         {
             double calculo = 0;
-            int tp = 0, tn = 0, fp = 0, fn = 0;            
+            int tp = 0, tn = 0, fp = 0, fn = 0;
 
-            for (int i = 0; i< Y.Count; i++)
+            for (int i = 0; i < Y.Count; i++)
             {
-                
+
                 calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
                 if (calculo > 0)
                 {
-                    if (Y[i] == 1)                    
-                        tp++;                    
+                    if (Y[i] == 1)
+                        tp++;
                     else
-                        fn++;                    
-                } else {
-                    if (Y[i] == 1)                    
-                        fp++;                   
-                    else                    
-                        tn++;                    
+                        fn++;
+                }
+                else
+                {
+                    if (Y[i] == 1)
+                        fp++;
+                    else
+                        tn++;
                 }
             }
             #region labels
-            labelN.Text  = "N = " + Y.Count.ToString();
+            labelN.Text = "N = " + Y.Count.ToString();
             labelTN.Text = "TN = " + tn.ToString();
             labelFP.Text = "FP = " + fp.ToString();
             labelFN.Text = "FN = " + fn.ToString();
@@ -176,12 +188,12 @@ namespace P1_Perceptron
             Point clicked = new Point(e.X, e.Y);
             Point example = new Point();
 
-            if(done)
+            if (done)
             {
                 //Evaluar punto de prueba una vez que el perceptron ya esta entrenado
                 evaluarPunto(clicked);
                 return;
-       
+
             }
             if (e.Button == MouseButtons.Right)
             {
@@ -190,12 +202,12 @@ namespace P1_Perceptron
             }
             else
             {
-                g.FillEllipse(b2, e.X - 6, e.Y -6, 10, 10);
+                g.FillEllipse(b2, e.X - 6, e.Y - 6, 10, 10);
                 Y.Add(0);
             }
 
             //Instanciar el punto del plano con los valores dados
-            PlanePoint planePoint = new PlanePoint( PointController.pixelsToPlane(clicked,bmp));            
+            PlanePoint planePoint = new PlanePoint(PointController.pixelsToPlane(clicked, bmp));
 
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
@@ -210,12 +222,12 @@ namespace P1_Perceptron
             Pen p1 = new Pen(b1);
 
             g.DrawLine(p1, bmp.Width / 2, 0, bmp.Width / 2, bmp.Height);
-            g.DrawLine(p1, 0, bmp.Height / 2,  bmp.Width, bmp.Height / 2);
+            g.DrawLine(p1, 0, bmp.Height / 2, bmp.Width, bmp.Height / 2);
 
             int segmWidth = bmp.Width / 10;
             int segmHeight = bmp.Height / 10;
 
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 if (i == 5) continue;
                 g.DrawLine(p1, segmWidth * i, bmp.Height / 2 - 3, segmWidth * i, bmp.Height / 2 + 3);
@@ -233,17 +245,19 @@ namespace P1_Perceptron
             {
                 // Create pen.
                 bmp2 = new Bitmap(bmp);
-                Pen blackPen = new Pen(Color.Green, 2);
                 Graphics g = Graphics.FromImage(bmp2);
 
                 Point point1 = PointController.planeToPixels(x1, y1, bmp2);
                 Point point2 = PointController.planeToPixels(x2, y2, bmp2);
 
                 // Draw line to screen.
-                g.DrawLine(blackPen, point1, point2);
+                if (bicolor == 0) { g.DrawLine(blackPen, point1, point2); bicolor = 1; }
+                else { g.DrawLine(blackPen2, point1, point2); bicolor = 0; }
 
                 pictureBox1.Image = bmp2;
                 pictureBox1.Refresh();
+
+                Thread.Sleep(200);
             }
             catch
             {
@@ -253,10 +267,10 @@ namespace P1_Perceptron
                 if (y2 < 0) y2 = 0;
                 dibujarLinea(x1, y1, x2, y2);
             }
-           
+
 
         }
 
-        
+
     }
 }
