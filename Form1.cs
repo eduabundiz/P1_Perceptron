@@ -257,7 +257,7 @@ namespace P1_Perceptron
                 pictureBox1.Image = bmp2;
                 pictureBox1.Refresh();
 
-                Thread.Sleep(200);
+                //Thread.Sleep(200);
             }
             catch
             {
