@@ -27,6 +27,7 @@ namespace P1_Perceptron
         double errorDeseado;
         Bitmap bmp;
         Bitmap bmp2;
+        Bitmap bmpLocal;
         bool done;
 
         int bicolor;
@@ -40,7 +41,7 @@ namespace P1_Perceptron
             createDashbord();
             a = 0.1;
             errorDeseado = 0.001;
-            epocMax = 200;
+            epocMax = 500;
             x1.Add(-5);
             x1.Add(5);
             button2.Enabled = false;
@@ -174,18 +175,18 @@ namespace P1_Perceptron
 
         private void evaluarPunto(Point p)
         {
-            Graphics g = Graphics.FromImage(bmp);
-            Brush b1 = new SolidBrush(Color.Red);
-            Brush b2 = new SolidBrush(Color.Blue);
+            Graphics g = Graphics.FromImage(bmpLocal);
+            Brush b1 = new SolidBrush(Color.Brown);
+            Brush b2 = new SolidBrush(Color.Coral);
             double calculo = 0;
-            PlanePoint planePoint = new PlanePoint(PointController.pixelsToPlane(p, bmp));
+            PlanePoint planePoint = new PlanePoint(PointController.pixelsToPlane(p, bmpLocal));
             calculo = (w[0] * -1 + w[1] * planePoint.X + w[2] * planePoint.Y);
             if (calculo > 0)
                 g.FillEllipse(b1, p.X - 6, p.Y - 6, 10, 10);
             else
                 g.FillEllipse(b2, p.X - 6, p.Y - 6, 10, 10);
 
-            pictureBox1.Image = bmp;
+            pictureBox1.Image = bmpLocal;
             pictureBox1.Refresh();
         }
 
@@ -317,6 +318,7 @@ namespace P1_Perceptron
             {
                 // Create pen.
                 bmp2 = new Bitmap(bmp);
+                bmpLocal = new Bitmap(bmp2);
                 Graphics g = Graphics.FromImage(bmp2);
 
                 Point point1 = PointController.planeToPixels(x1, y1, bmp2);
@@ -354,7 +356,7 @@ namespace P1_Perceptron
         //Pintar mitades de bitmap
         private void pintarMitades()
         {
-            Bitmap bmpLocal = new Bitmap(bmp2);
+            
             double calculo = 0;
             for (int i=0; i<bmpLocal.Height;i++)
             {
