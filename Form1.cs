@@ -22,11 +22,12 @@ namespace P1_Perceptron
         List<double> x1 = new List<double>();
         List<double> x2 = new List<double>();
         List<int> Y = new List<int>();
-        bool done;
         double a;
         int epocMax;
+        double errorDeseado;
         Bitmap bmp;
         Bitmap bmp2;
+        bool done;
 
         int bicolor;
         Pen blackPen;
@@ -38,11 +39,11 @@ namespace P1_Perceptron
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             createDashbord();
             a = 0.1;
-            epocMax = 50;
+            errorDeseado = 0.001;
+            epocMax = 200;
             x1.Add(-5);
             x1.Add(5);
             button2.Enabled = false;
-            done = false;
             bicolor = 0;
             blackPen = new Pen(Color.Green, 2);
             blackPen2 = new Pen(Color.Orange, 2);
@@ -51,6 +52,8 @@ namespace P1_Perceptron
         //Inicializar el vector de pesos y mostrar la primera linea recta
         private void button1_Click(object sender, EventArgs e)
         {
+            w.Clear();
+            x2.Clear();
             if (textBox1.Text != "")
             {
                 a = Convert.ToDouble(textBox1.Text);
@@ -59,9 +62,21 @@ namespace P1_Perceptron
             {
                 epocMax = Convert.ToInt32(textBox2.Text);
             }
-            w.Add(0.4);
-            w.Add(0.1);
-            w.Add(0.2);
+            if (textBox3.Text != "")
+            {
+                errorDeseado = Convert.ToDouble(textBox3.Text);
+            }
+
+            //Generar vector de pesos de forma aleatoria
+            Random rnd = new Random();
+
+            double numRandom = rnd.NextDouble();
+
+            w.Add(numRandom);
+            numRandom = rnd.NextDouble();
+            w.Add(numRandom);
+            numRandom = rnd.NextDouble();
+            w.Add(numRandom);
 
             x2.Add((-w[1] * x1[0] + w[0]) / w[2]);
             x2.Add((-w[1] * x1[1] + w[0]) / w[2]);
@@ -69,52 +84,92 @@ namespace P1_Perceptron
             //Dibujar primera linea con las coordenadas [x1[0],x2[0]],[x1[1],x2[1]]
             dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
 
-            button1.Enabled = false;
             button2.Enabled = true;
         }
 
         //Entrenar el perceptron
         private void button2_Click(object sender, EventArgs e)
         {
-            double calculo = 0;
-            int prediccion;
             int cont = 0;
-            int error;
-            while (!done && cont < epocMax)
+            double error;
+            double errorAcum = 0;
+            done = false;
+            while (errorDeseado > errorAcum || cont<epocMax)
             {
-                done = true;
+                errorAcum = 0;
                 for (int i = 0; i < planePoints.Count(); i++)
                 {
                     x2[0] = (-w[1] * x1[0] + w[0]) / w[2];
                     x2[1] = (-w[1] * x1[1] + w[0]) / w[2];
                     dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
-                    calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
-                    if (calculo >= 0)
-                        prediccion = 1;
-                    else
-                        prediccion = 0;
-                    error = Y[i] - prediccion;
-                    if (error != 0)
-                    {
-                        w[0] = w[0] + (a * error * -1);
-                        w[1] = w[1] + (a * error * planePoints[i].X);
-                        w[2] = w[2] + (a * error * planePoints[i].Y);
-                        done = false;
-                    }
+
+                    error = Y[i] - sigmoide(multWX(w,planePoints[i]));
+                    errorAcum += Math.Pow(error,2);
+                    w[0] = w[0] + 2*a * error * sigmoide(multWX(w, planePoints[i]))*(1- sigmoide(multWX(w, planePoints[i])))*-1;
+                    w[1] = w[1] + 2 * a * error * sigmoide(multWX(w, planePoints[i])) * (1 - sigmoide(multWX(w, planePoints[i]))) * planePoints[i].X;
+                    w[2] = w[2] + 2 * a * error * sigmoide(multWX(w, planePoints[i])) * (1 - sigmoide(multWX(w, planePoints[i]))) * planePoints[i].Y;
+                }
+                errorAcum = errorAcum / planePoints.Count();
+
+
+
+
+
+
+                //graficar error cuadrático **********MEMO AQUI VA LA GRAFICA SEGUN NOSOTROS :)****************
+
+
+
+
+
+
+
+                
+                if (errorDeseado>errorAcum)
+                {
+                    break;
                 }
                 cont++;
+                if(cont==epocMax)
+                {
+                    break;
+                }
             }
-            matrizConfusion();
+            x2[0] = (-w[1] * x1[0] + w[0]) / w[2];
+            x2[1] = (-w[1] * x1[1] + w[0]) / w[2];
+            dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
+            if (cont < epocMax)
+            {
+                done = true;
+            }
+
+            bool ceros = matrizConfusion();
+            if(ceros)
+            {
+                pintarMitades();
+            }
             if (done)
             {
-                MessageBox.Show("Terminó en la epoca: " + cont.ToString());
+                MessageBox.Show("Terminó en la época: " + cont.ToString());
                 bmp = bmp2;
             }
             else if (cont >= epocMax)
             {
-                MessageBox.Show("Llego a las epocas Máximas: " + cont.ToString() + " Sin resultados");
+                MessageBox.Show("Llegó a las épocas máximas: " + cont.ToString());
             }
 
+        }
+
+        private double multWX(List<double> pesos, PlanePoint punto)
+        {
+            return pesos[0] * -1 + pesos[1] * punto.X + pesos[2] * punto.Y;
+        } 
+
+        private double sigmoide(double wx)
+        {
+            double calculo;
+            calculo = 1 / (1 + Math.Pow(Math.E, -wx));
+            return calculo; 
         }
 
         private void evaluarPunto(Point p)
@@ -134,7 +189,7 @@ namespace P1_Perceptron
             pictureBox1.Refresh();
         }
 
-        private void matrizConfusion()
+        private bool matrizConfusion()
         {
             double calculo = 0;
             int tp = 0, tn = 0, fp = 0, fn = 0;
@@ -142,8 +197,8 @@ namespace P1_Perceptron
             for (int i = 0; i < Y.Count; i++)
             {
 
-                calculo = (w[0] * -1 + w[1] * planePoints[i].X + w[2] * planePoints[i].Y);
-                if (calculo >= 0)
+                calculo = sigmoide(multWX(w, planePoints[i]));
+                if (calculo >= 0.5)
                 {
                     if (Y[i] == 1)
                         tp++;
@@ -158,6 +213,7 @@ namespace P1_Perceptron
                         tn++;
                 }
             }
+
             #region labels
             labelN.Text = "N = " + Y.Count.ToString();
             labelTN.Text = "TN = " + tn.ToString();
@@ -176,14 +232,23 @@ namespace P1_Perceptron
             labelTotalTotal.Text = (totalActNo + totalActSi).ToString();
 
             #endregion            
+
+            if (fn == 0 && fp == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
             points.Add(e.Location);
             Graphics g = Graphics.FromImage(bmp);
-            Brush b1 = new SolidBrush(Color.Red);
-            Brush b2 = new SolidBrush(Color.Blue);
+            Brush b1 = new SolidBrush(Color.Brown);
+            Brush b2 = new SolidBrush(Color.Coral);
 
             Point clicked = new Point(e.X, e.Y);
             Point example = new Point();
@@ -217,6 +282,13 @@ namespace P1_Perceptron
 
         private void createDashbord()
         {
+            for (int i = 0; i < bmp.Height; i++)
+            {
+                for (int j = 0; j < bmp.Width; j++)
+                {
+                    bmp.SetPixel(j, i, Color.White);
+                }
+            }
             Graphics g = Graphics.FromImage(bmp);
             Brush b1 = new SolidBrush(Color.Black);
             Pen p1 = new Pen(b1);
@@ -251,8 +323,16 @@ namespace P1_Perceptron
                 Point point2 = PointController.planeToPixels(x2, y2, bmp2);
 
                 // Draw line to screen.
-                if (bicolor == 0) { g.DrawLine(blackPen, point1, point2); bicolor = 1; }
-                else { g.DrawLine(blackPen2, point1, point2); bicolor = 0; }
+                if (bicolor == 0) 
+                { 
+                    g.DrawLine(blackPen, point1, point2); 
+                    bicolor = 1; 
+                }
+                else 
+                { 
+                    g.DrawLine(blackPen2, point1, point2); 
+                    bicolor = 0; 
+                }
 
                 pictureBox1.Image = bmp2;
                 pictureBox1.Refresh();
@@ -271,6 +351,90 @@ namespace P1_Perceptron
 
         }
 
+        //Pintar mitades de bitmap
+        private void pintarMitades()
+        {
+            Bitmap bmpLocal = new Bitmap(bmp2);
+            double calculo = 0;
+            for (int i=0; i<bmpLocal.Height;i++)
+            {
+                for (int j=0; j<bmpLocal.Width;j++)
+                {
+                    Color c = bmpLocal.GetPixel(j, i);
+                    if (c.R == 255)
+                    {
+                        if(c.G == 255)
+                        {
+                            if(c.B == 255)
+                            {
+                                PlanePoint convertir = PointController.pixelsToPlane(j, i, bmp);
+                                calculo = sigmoide(multWX(w, convertir));
+                                if (calculo >= 0.5)
+                                {
+                                    
+                                    Color nuevo = new Color();
+                                    nuevo = Color.Orange;
+                                    double x = Math.Round(calculo * 255);
+                                    int xI = Convert.ToInt32(x);
+                                    Color newColor = Color.FromArgb( xI, nuevo.R, nuevo.G,nuevo.B);
+                                    bmpLocal.SetPixel(j, i, newColor);
+
+
+                                }
+                                else
+                                {
+                                    Color nuevo = new Color();
+                                    nuevo = Color.Purple;
+                                    double x = Math.Round(calculo * 255);
+                                    int xI = Convert.ToInt32(x);
+                                    xI = Math.Abs(255 - xI);
+                                    Color newColor = Color.FromArgb(xI, nuevo.R, nuevo.G, nuevo.B);
+                                    bmpLocal.SetPixel(j, i, newColor);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            pictureBox1.Image = bmpLocal;
+            pictureBox1.Refresh();
+
+        }
+
+        private void cleanLabels()
+        {
+            labelN.Text = "N = ";
+            labelTN.Text = "TN = ";
+            labelFP.Text = "FP = ";
+            labelFN.Text = "FN = ";
+            labelTP.Text = "TP = ";
+
+            labelTotalPredNo.Text = "";
+            labelTotalPredSi.Text = "";
+
+            labelTotalActNo.Text = "";
+            labelTotalActSI.Text = "";
+            labelTotalTotal.Text = "";
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            points.Clear();
+            planePoints.Clear();
+            w.Clear();
+            x1.Clear();
+            x2.Clear();
+            Y.Clear();
+
+            bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+            pictureBox1.Refresh();
+            createDashbord();
+            x1.Add(-5);
+            x1.Add(5);
+            button1.Enabled = true;
+            button2.Enabled = false;
+            done = false;
+            cleanLabels();
+        }
 
     }
 }
