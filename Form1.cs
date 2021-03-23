@@ -113,19 +113,14 @@ namespace P1_Perceptron
                 errorAcum = errorAcum / planePoints.Count();
 
 
-
-
-
-
                 //graficar error cuadrático **********MEMO AQUI VA LA GRAFICA SEGUN NOSOTROS :)****************
 
 
+                chart1.Series[0].Points.AddXY(cont, errorAcum);
+                chart1.Update();
+                Thread.Sleep(50);
 
 
-
-
-
-                
                 if (errorDeseado>errorAcum)
                 {
                     break;
@@ -426,6 +421,7 @@ namespace P1_Perceptron
             x1.Clear();
             x2.Clear();
             Y.Clear();
+            chart1.Series[0].Points.Clear();
 
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             pictureBox1.Refresh();
