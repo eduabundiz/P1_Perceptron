@@ -39,6 +39,11 @@ namespace P1_Perceptron
         int clases;
         List<int> neuronasPorCapa = new List<int>();
         List<double[,]> pesos;
+        List<double> aCapa;
+        List<List<double>> todasA;
+        List<double> Neto;
+        List<List<double>> Netas;
+
 
         public Form1()
         {
@@ -55,6 +60,9 @@ namespace P1_Perceptron
             bicolor = 0;
             blackPen = new Pen(Color.Blue, 2);
             blackPen2 = new Pen(Color.Red, 2);
+            //aCapa = new List<double>();
+            todasA = new List<List<double>>();
+            Netas = new List<List<double>>();
             
         }
 
@@ -85,36 +93,86 @@ namespace P1_Perceptron
 
             for (int i=0;i<hiddenLayers;i++)
             {
-                double[,] matriz = new double[neuronasPorCapa[i], 3];
-                pesos.Add(matriz);
+                if (i == 0)
+                {
+                    double[,] matriz = new double[neuronasPorCapa[i], 3];
+                    pesos.Add(matriz);
+                }
+                else
+                {
+                    double[,] matriz = new double[neuronasPorCapa[i], neuronasPorCapa[i - 1]+1];
+                    pesos.Add(matriz);
+                }
+                
             }
 
-            double[,] matriz2 = new double[clases, 3];
+            double[,] matriz2 = new double[clases, neuronasPorCapa[neuronasPorCapa.Count-1]+1];
             pesos.Add(matriz2);
-            neuronasPorCapa.Add(clases);
+            neuronasPorCapa.Add(clases);//Esta capa es la de salida
 
             Random rnd = new Random();
             Random rnd2 = new Random();
 
             for(int i=0; i<pesos.Count; i++)
             {
-                for(int j=0; j<neuronasPorCapa[i]; j++)
+                Neto = new List<double>();
+                for (int j=0; j<neuronasPorCapa[i]; j++)
                 {
-                    for (int k = 0; k < 3; k++)
+                    Neto.Add(0);
+                    if (i == 0)
                     {
-                        int numRan = rnd2.Next();
-                        if(numRan%2==0)
+                        aCapa = new List<double>();
+                        for (int k = 0; k < 3; k++)
                         {
-                            pesos[i][j, k] = rnd.NextDouble();
+                            
+                            if (k == 0)
+                            {aCapa.Add(-1);}
+                            else { aCapa.Add(0); }
+
+                            int numRan = rnd2.Next();
+                            if (numRan % 2 == 0)
+                            {
+                                pesos[i][j, k] = rnd.NextDouble();
+                            }
+                            else
+                            {
+                                pesos[i][j, k] = rnd.NextDouble() * -1;
+                            }
+
                         }
-                        else
+                       
+                    }
+                    else
+                    {
+                        aCapa = new List<double>();
+                        for (int k = 0; k <= neuronasPorCapa[i-1]; k++)
                         {
-                            pesos[i][j, k] = rnd.NextDouble()*-1;
+                            if (k == 0)
+                            { aCapa.Add(-1); }
+                            else { aCapa.Add(0); }
+
+                            int numRan = rnd2.Next();
+                            if (numRan % 2 == 0)
+                            {
+                                pesos[i][j, k] = rnd.NextDouble();
+                            }
+                            else
+                            {
+                                pesos[i][j, k] = rnd.NextDouble() * -1;
+                            }
+
                         }
                         
                     }
                 }
+                todasA.Add(aCapa);
+                Netas.Add(Neto);
             }
+            aCapa = new List<double>();
+            for (int i = 0; i < clases; i++)
+            {aCapa.Add(0); }
+
+            todasA.Add(aCapa);
 
             //Dibujar variedades lineales que corresponden a los pesos de la primera capa oculta
 
@@ -142,9 +200,59 @@ namespace P1_Perceptron
             while (errorDeseado > errorAcum || cont<epocMax)
             {
                 errorAcum = 0;
+
+                
                 for (int i = 0; i < planePoints.Count(); i++)
                 {
-                    x2[0] = (-w[1] * x1[0] + w[0]) / w[2];
+                  
+                    todasA[0][1] = planePoints[i].X;
+                    todasA[0][2] = planePoints[i].Y;
+
+                    for(int j = 0; j < hiddenLayers+1; j++)
+                    {
+                        for(int k = 0;k < neuronasPorCapa[j]; k++)
+                        {
+                            if (j == 0)
+                            {
+                                double net = pesos[j][k, 0] * todasA[0][0]+ pesos[j][k, 1] * todasA[0][1] + pesos[j][k, 2] * todasA[0][2];
+                                Netas[j][k] = net;
+                                double aux = sigmoide(net);
+                                todasA[1][k+1] = aux;
+
+                            }
+                            else
+                            {
+                                double net=0;
+                                for (int p = 0; p < neuronasPorCapa[j - 1]; p++)
+                                {
+                                    net = net + pesos[j][k, p] * todasA[j][p];
+                                }
+                                Netas[j][k] = net;
+                                double aux = sigmoide(net);
+
+                                if (k == neuronasPorCapa[neuronasPorCapa.Count - 1] - 1)
+                                {
+                                    todasA[j + 1][k] = aux;
+                                }
+                                else
+                                {
+                                    todasA[j + 1][k + 1] = aux;
+                                }
+
+                                if (j == hiddenLayers && k == 0) { todasA[j + 1][0] = aux; } // Talvez este mal nosabemos
+                                
+                            }
+                            
+                        }
+                    }
+
+                    MessageBox.Show("ajalas");
+                    
+                    //Aqui va el forward papa
+
+
+
+                    /*x2[0] = (-w[1] * x1[0] + w[0]) / w[2];
                     x2[1] = (-w[1] * x1[1] + w[0]) / w[2];
                     dibujarLinea(x1[0], x2[0], x1[1], x2[1]);
 
@@ -152,7 +260,7 @@ namespace P1_Perceptron
                     errorAcum += Math.Pow(error,2);
                     w[0] = w[0] + 2*a * error * sigmoide(multWX(w, planePoints[i]))*(1- sigmoide(multWX(w, planePoints[i])))*-1;
                     w[1] = w[1] + 2 * a * error * sigmoide(multWX(w, planePoints[i])) * (1 - sigmoide(multWX(w, planePoints[i]))) * planePoints[i].X;
-                    w[2] = w[2] + 2 * a * error * sigmoide(multWX(w, planePoints[i])) * (1 - sigmoide(multWX(w, planePoints[i]))) * planePoints[i].Y;
+                    w[2] = w[2] + 2 * a * error * sigmoide(multWX(w, planePoints[i])) * (1 - sigmoide(multWX(w, planePoints[i]))) * planePoints[i].Y;*/
                 }
                 errorAcum = errorAcum / planePoints.Count();
 
@@ -160,7 +268,6 @@ namespace P1_Perceptron
                 //graficar error cuadrático **********MEMO AQUI VA LA GRAFICA SEGUN NOSOTROS :)****************
 
 
-                Thread.Sleep(50);
 
 
                 if (errorDeseado>errorAcum)
@@ -433,5 +540,7 @@ namespace P1_Perceptron
             neuronasPorCapa[Convert.ToInt32(numericUpDown1.Value) - 1] = Convert.ToInt32(textBox5.Text);
             listBox1.Items.Add("Capa "+ numericUpDown1.Value+" Neuronas "+ neuronasPorCapa[Convert.ToInt32(numericUpDown1.Value) - 1]);
         }
+
+
     }
 }
